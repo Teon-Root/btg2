@@ -46,11 +46,11 @@ async def set_start_message(message: Message, state: FSMContext):
      result = cursor.execute('''SELECT text_start FROM text_command;''').fetchone()
 
      if result is not None and result[0] is not None:
-         await message.answer("✅ Новое приветственное сообщение сохранено!")
+         await message.answer("✅ Новое приветственное сообщение сохранено!", reply_markup=reply.keyboard_menu)
      else:
          await message.answer("❌ Ошибка сохранения! ❌\n"
                               "Вы можете добавлять только\n"
-                              "текст, ссылки, эмодзи 🥹")
+                              "текст, ссылки, эмодзи 🥹", reply_markup=reply.keyboard_menu)
 
      con.commit()
 
@@ -58,7 +58,7 @@ async def set_start_message(message: Message, state: FSMContext):
 async def any_callback_join(callback: CallbackQuery, state: FSMContext):
     #await callback.message.edit_text('Тестовый текст')
     await state.set_state(SetStartMessage.set_message_join)
-    await callback.message.answer(text='Введите новое сообщение приветствие, подписки на Канал. И отправьте в чат!\n')
+    await callback.message.answer(text='Введите новое сообщение приветствие, подписки на Канал. И отправьте в чат!\n', reply_markup=ReplyKeyboardRemove(remove_keyboard=True))
 
 @admin_router.message(SetStartMessage.set_message_join)
 async def set_start_message_join(message: Message, state: FSMContext):
@@ -71,11 +71,11 @@ async def set_start_message_join(message: Message, state: FSMContext):
      result_join = cursor.execute('''SELECT text_join FROM text_command;''').fetchone()
 
      if result_join is not None and result_join[0] is not None:
-         await message.answer("✅ Новое приветственное сообщение для Канала сохранено!")
+         await message.answer("✅ Новое приветственное сообщение для Канала сохранено!", reply_markup=reply.keyboard_menu)
      else:
          await message.answer("❌ Ошибка сохранения! ❌\n"
                               "Вы можете добавлять только\n"
-                              "текст, ссылки, эмодзи 🥹")
+                              "текст, ссылки, эмодзи 🥹", reply_markup=reply.keyboard_menu)
 
      con.commit()
 
