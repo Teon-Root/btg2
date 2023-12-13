@@ -37,4 +37,12 @@ keyboard_2: InlineKeyboardMarkup = InlineKeyboardMarkup(
                      [start_sms_sending]]
 )
 
+yes_button = InlineKeyboardButton(text='Да✅', callback_data='yes')
+no_button = InlineKeyboardButton(text='Нет❌', callback_data='no')
+keyboard_3: InlineKeyboardMarkup = InlineKeyboardMarkup(
+    inline_keyboard=[[yes_button,no_button]]
+)
+
+rename_button_yes = InlineKeyboardButton(text='Задать текст кнопки', callback_data='rename_button_yes')
+
 # --------------------------------------------------------------------------------------------------- keyboard yes or no

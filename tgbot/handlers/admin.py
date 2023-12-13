@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, KeyboardButton, ReplyKeyboardRemove
-from tgbot.keyboards.inline import keyboard, keyboard_2
+from tgbot.keyboards.inline import keyboard, keyboard_2, keyboard_3
 from tgbot.filters.admin import AdminFilter
 from tgbot.misc import SetStartMessage
 from tgbot.keyboards import reply
@@ -20,33 +20,29 @@ admin_router.message.filter(AdminFilter())
 
 @admin_router.message(CommandStart())
 async def admin_start(message: Message, state: FSMContext):
+    print(message.from_user.id)
     await state.clear()
     await message.reply("Привет, админ!", reply_markup=reply.keyboard_menu)
     await message.answer('Меню админа:', reply_markup=keyboard)
-    #await message.answer('111')
 
 @admin_router.callback_query(F.data == 'start_rename')
 async def any_callback(callback: CallbackQuery, state: FSMContext):
-    # await callback.message.edit_reply_markup(reply_markup=None)
-    # await callback.message.edit_reply_markup()
     await state.set_state(SetStartMessage.set_message)
     await callback.message.answer(text='Введите новое сообщение для\n/start\n'
                                        'И отправьте в чат!', reply_markup=ReplyKeyboardRemove(remove_keyboard=True))
 
-
-
 @admin_router.message(SetStartMessage.set_message)
 async def set_start_message(message: Message, state: FSMContext):
-     # тут берешь текст из сообщения и засовываешь в БД
      answer = message.text
-     cursor.execute('''UPDATE text_command SET text_start = ?;''', (answer,))
+     cursor.execute(f'''UPDATE text_command SET text_start = '{answer}' where id=1;''')
      con.commit()
      await state.clear() # очищаешь состояние
      # await message.answer(f'Вы написали {answer}')
-     result = cursor.execute('''SELECT text_start FROM text_command;''').fetchone()
+     result = cursor.execute('''SELECT text_start FROM text_command where id=1;''').fetchone()[0]
 
-     if result is not None and result[0] is not None:
+     if result is not None:
          await message.answer("✅ Новое приветственное сообщение сохранено!", reply_markup=reply.keyboard_menu)
+         await state.clear()
      else:
          await message.answer("❌ Ошибка сохранения! ❌\n"
                               "Вы можете добавлять только\n"
@@ -64,20 +60,49 @@ async def any_callback_join(callback: CallbackQuery, state: FSMContext):
 async def set_start_message_join(message: Message, state: FSMContext):
      # тут берешь текст из сообщения и засовываешь в БД
      answer_join = message.text
-     cursor.execute('''UPDATE text_command SET text_join = ?;''', (answer_join,))
-     con.commit()
      await state.clear() # очищаешь состояние
      # await message.answer(f'Вы написали {answer}')
-     result_join = cursor.execute('''SELECT text_join FROM text_command;''').fetchone()
+     result_join = cursor.execute(f'''UPDATE text_command SET text_join ='{answer_join}' where id=1;''')
+     con.commit()
 
-     if result_join is not None and result_join[0] is not None:
+     if result_join is not None:
          await message.answer("✅ Новое приветственное сообщение для Канала сохранено!", reply_markup=reply.keyboard_menu)
+         await state.clear()
+         await message.answer('Добавим Кнопку📌 в приветствие ?', reply_markup=keyboard_3)
      else:
          await message.answer("❌ Ошибка сохранения! ❌\n"
                               "Вы можете добавлять только\n"
                               "текст, ссылки, эмодзи 🥹", reply_markup=reply.keyboard_menu)
 
-     con.commit()
+
+@admin_router.callback_query(F.data == 'no')
+async def no_callback(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(SetStartMessage.set_message_no)
+    await callback.message.answer(text='Сохранено!\nБот работает✅ Без кнопки', reply_markup=reply.keyboard_menu)
+    cursor.execute('''UPDATE text_command SET text_join_button = NULL WHERE id = 1;''')
+    con.commit()
+    await state.clear()
+
+@admin_router.callback_query(F.data == 'yes')
+async def yes_callback(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(SetStartMessage.set_message_yes)
+    await callback.message.answer(text='Да✅ Давай настроем кнопку:\nотправьте текст-название в чат! ', reply_markup=ReplyKeyboardRemove(remove_keyboard=True))
+
+@admin_router.message(SetStartMessage.set_message_yes)
+async def set_message_yes(message: Message, state: FSMContext):
+    answer_join_button = message.text
+    cursor.execute(f'''UPDATE text_command SET text_join_button = '{answer_join_button}' where id=1;''')
+    con.commit()
+    await state.clear()
+    result_join = cursor.execute('''SELECT text_join_button FROM text_command where id=1;''').fetchone()[0]
+    print(result_join)
+    if result_join is not None:
+        await message.answer("✅ Текст для кнопки сохранён!\nБот работает✅", reply_markup=reply.keyboard_menu)
+        await state.clear()
+    else:
+        await message.answer("❌ Ошибка сохранения! ❌\n"
+                             "Вы можете добавлять только\n"
+                             "текст, эмодзи 🥹", reply_markup=reply.keyboard_menu)
 
 @admin_router.message(F.text == 'ℹ️ Показать меню')
 async  def set_menu(message: Message, state: FSMContext):
