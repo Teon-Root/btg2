@@ -30,7 +30,7 @@ sms_sending = InlineKeyboardButton(
 )
 start_sms_sending = InlineKeyboardButton(
     text='Начать рассылку',
-    callback_data='cd_sms_sending'
+    callback_data='cd_sms_start'
 )
 keyboard_2: InlineKeyboardMarkup = InlineKeyboardMarkup(
     inline_keyboard=[[sms_sending],
