@@ -1,4 +1,4 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, KeyboardButton, ReplyKeyboardRemove
@@ -130,8 +130,29 @@ async def set_message_yes(message: Message, state: FSMContext):
     print(result_join)
     if result_join != 'None':
         await message.answer("✅ Текст для рассылки сохранён", reply_markup=reply.keyboard_menu)
+        await message.answer('✉️ Рассылка', reply_markup=keyboard_2)
+        result_join = cursor.execute('''SELECT text_newsletter FROM text_command where id=1;''').fetchone()[0]
+        sep = '...........................................................'
+        await message.answer(f'<b>Сейчас текст рассылки такой:</b>\n{sep}\n{result_join}')
         await state.clear()
     else:
         await message.answer("❌ Ошибка сохранения! ❌\n"
                              "Сообщение может содержать только\n"
                              "текст, эмодзи 🥹", reply_markup=reply.keyboard_menu)
+
+
+@admin_router.callback_query(F.data == 'cd_sms_start')
+async def send_message_all_users(callback: CallbackQuery,bot: Bot):
+    message_text = cursor.execute('''SELECT text_newsletter FROM text_command where id=1;''').fetchone()[0]
+    users = cursor.execute('''SELECT user_id FROM user_table;''').fetchall()
+    for user in users:
+        user_id = user[0]
+        try:
+            print(user)
+            await bot.send_message(chat_id=user_id, text=message_text)
+        except:
+            pass
+
+    await callback.message.answer("✅Рассылка завершена.")
+
+

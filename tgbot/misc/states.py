@@ -7,3 +7,4 @@ class SetStartMessage(StatesGroup):
     set_message_yes = State()
     set_message_no = State()
     cd_sms_sending = State()
+    cd_sms_start = State()

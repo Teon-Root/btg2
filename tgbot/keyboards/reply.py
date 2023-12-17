@@ -13,4 +13,3 @@ text_start1 = cursor.execute("SELECT text_join_button FROM text_command where id
 button_yes = KeyboardButton(text=f'{text_start1}')
 
 keyboard_join = ReplyKeyboardBuilder().row(button_yes).as_markup(resize_keyboard=True)
-print('Вот', text_start1)
